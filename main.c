@@ -19,7 +19,10 @@ void store_telemetry(ForzaTelemetry *telemetry)
 
 int main()
 {
-    start_fh5_socket();
+    if (start_fh5_socket() == 1)
+    {
+        perror("Unable to create FH5 socket");
+    }
 
     return 0;
 }

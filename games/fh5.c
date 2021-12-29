@@ -362,20 +362,26 @@ void fh5_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
     offset += datum_size;
 }
 
-void start_fh5_socket(void)
+int start_fh5_socket(void)
 {
     int sockfd;
     struct sockaddr_in servaddr, cliaddr;
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
         perror("An error occurred creating FH5 socket");
+        return 1;
+    }
 
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(FH5_PORT);
     servaddr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
+    {
         perror("An error occurred binding FH5 socket");
+        return 1;
+    }
 
     socklen_t len;
     ssize_t msg_len;
