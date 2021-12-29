@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#include "../main.h"
+#include "../libforza.h"
 #include "../ForzaTelemetry.h"
 
 #define FH5_PORT 9925
@@ -393,6 +393,6 @@ int start_fh5_socket(void)
     {
         fh5_parse_telemetry(&telemetry, buffer);
 
-        store_telemetry(&telemetry);
+        store_latest_telemetry(&telemetry);
     }
 }
