@@ -362,7 +362,7 @@ void fh5_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
     offset += datum_size;
 }
 
-int start_fh5_socket(void)
+void *start_fh5_socket(void *vargp)
 {
     int sockfd;
     struct sockaddr_in servaddr, cliaddr;
@@ -395,4 +395,6 @@ int start_fh5_socket(void)
 
         store_latest_telemetry(&telemetry);
     }
+
+    return 0;
 }
