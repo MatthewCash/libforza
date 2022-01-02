@@ -1,27 +1,41 @@
 CC=gcc
 
-DEBUG_CFLAGS=-Wextra -g -O0
-RELEASE_CFLAGR=-Wextra -O2 -DNDEBUG
+BASE_CFLAGS=-Wextra
+
+DEBUG_CFLAGS=$(BASE_CFLAGS) -g -O0
+RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -DNDEBUG
 
 SRC_DIR=src/
 OBJ_DIR=obj/
 LIB_DIR=lib/
+LIB_INSTALL_DIR=/usr/local/lib
 
 SRCS:=$(shell find $(SRC_DIR) -name '*.c')
 OBJS:=$(patsubst $(SRC_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS))
-OBJ_DIRS:=$(dir $(OBJS))
+OBJ_DIRS:=$(sort $(dir $(OBJS)))
 
-LIB = $(LIB_DIR)libforza.a
+STATIC_LIB= $(LIB_DIR)libforza.a
+DYNAMIC_LIB= $(LIB_DIR)libforza.so
 
 .PHONY: all
 all: debug
 
+.PHONY: debug
 debug: CFLAGS=$(DEBUG_CFLAGS)
-debug: $(LIB)
+debug: static
 
+.PHONY: release
 release: clean
-release: CFLAGS=$(RELEASE_CFLAGR)
-release: $(LIB)
+release: CFLAGS=$(RELEASE_CFLAGS)
+release: static
+
+.PHONY: static
+static: $(STATIC_LIB)
+
+.PHONY: dynamic
+dynamic: clean
+dynamic: CFLAGS=$(RELEASE_CFLAGS) -fPIC
+dynamic: $(DYNAMIC_LIB)
 
 # Create directories for objects
 $(OBJ_DIRS):
@@ -33,13 +47,22 @@ $(LIB_DIR):
 
 # Compile C files to objects
 $(OBJS): $(SRCS) $(OBJ_DIRS)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $(patsubst $(OBJ_DIR)%.o, $(SRC_DIR)%.c, $@) -o $@
 
-# Package library
-$(LIB): $(LIB_DIR) $(OBJS)
-	rm -f $(LIB)
-	ar -cvrs $(LIB) $(OBJS)
+# Package static library
+$(STATIC_LIB): $(LIB_DIR) $(OBJS)
+	rm -f $@
+	ar rcs $@ $(OBJS)
+
+# Link dynamic library
+$(DYNAMIC_LIB): $(LIB_DIR) $(OBJS)
+	$(CC) -fPIC -shared -o $@ $(OBJS) -lc
 
 .PHONY: clean
 clean:
-	rm -r $(OBJ_DIR)
+	rm -f $(LIB_DIR)*
+	rm -rf $(OBJ_DIR)*
+
+.PHONY: install
+install: dynamic
+	install $(DYNAMIC_LIB) $(LIB_INSTALL_DIR)
