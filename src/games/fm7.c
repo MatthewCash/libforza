@@ -10,10 +10,10 @@
 #include "../libforza.h"
 #include "../ForzaTelemetry.h"
 
-#define FH5_PORT 9925
-#define FH5_BUFFER_SIZE 324
+#define FM7_PORT 9917
+#define FM7_BUFFER_SIZE 312
 
-static void fh5_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
+static void fm7_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
 {
     unsigned int offset = 0;
     size_t datum_size;
@@ -250,9 +250,6 @@ static void fh5_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
     memcpy(&telemetry->num_cylinders, buffer + offset, datum_size);
     offset += datum_size;
 
-    // Skip 12 bytes
-    offset += 12;
-
     datum_size = sizeof(telemetry->position_x);
     memcpy(&telemetry->position_x, buffer + offset, datum_size);
     offset += datum_size;
@@ -362,37 +359,37 @@ static void fh5_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
     offset += datum_size;
 }
 
-void *start_fh5_socket(void *vargp)
+void *start_fm7_socket(void *vargp)
 {
     struct sockaddr_in servaddr, cliaddr;
 
     const int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0)
     {
-        perror("An error occurred creating FH5 socket");
+        perror("An error occurred creating FM7 socket");
         return (void *)1;
     }
 
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(FH5_PORT);
+    servaddr.sin_port = htons(FM7_PORT);
     servaddr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
     {
-        perror("An error occurred binding FH5 socket");
+        perror("An error occurred binding FM7 socket");
         return (void *)1;
     }
 
     socklen_t len;
     ssize_t msg_len;
-    void *buffer = alloca(FH5_BUFFER_SIZE);
+    void *buffer = alloca(FM7_BUFFER_SIZE);
 
     ForzaTelemetry telemetry;
 
-    puts("Waiting for message from FH5 socket...\n");
-    while (msg_len = recvfrom(sockfd, buffer, FH5_BUFFER_SIZE, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len))
+    puts("Waiting for message from FM7 socket...\n");
+    while (msg_len = recvfrom(sockfd, buffer, FM7_BUFFER_SIZE, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len))
     {
-        fh5_parse_telemetry(&telemetry, buffer);
+        fm7_parse_telemetry(&telemetry, buffer);
 
         store_latest_telemetry(&telemetry);
     }
