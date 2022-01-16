@@ -2,13 +2,16 @@ CC=gcc
 
 BASE_CFLAGS=-Wextra
 
-DEBUG_CFLAGS=$(BASE_CFLAGS) -g -O0
+DEBUG_CFLAGS=$(BASE_CFLAGS) -g -Og
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -DNDEBUG
 
 SRC_DIR=src/
 OBJ_DIR=obj/
 LIB_DIR=lib/
 LIB_INSTALL_DIR=/usr/local/lib
+HEADER_INSTALL_DIR=/usr/local/include
+
+HEADER_FILE=include/forza.h
 
 SRCS:=$(shell find $(SRC_DIR) -name '*.c')
 OBJS:=$(patsubst $(SRC_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS))
@@ -64,5 +67,6 @@ clean:
 	rm -rf $(OBJ_DIR)*
 
 .PHONY: install
-install: dynamic
-	install $(DYNAMIC_LIB) $(LIB_INSTALL_DIR)
+install: static
+	install $(STATIC_LIB) $(LIB_INSTALL_DIR)
+	install $(HEADER_FILE) $(HEADER_INSTALL_DIR)
