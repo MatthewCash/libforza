@@ -1,3 +1,5 @@
 #pragma once
 
-void *start_fm7_socket(void *vargp);
+int start_fm7_socket(void);
+
+int handle_fm7_socket_data(const int sockfd);

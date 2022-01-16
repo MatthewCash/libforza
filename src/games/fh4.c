@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#include "../libforza.h"
+#include "../forza.h"
 #include "../ForzaTelemetry.h"
 
 #define FH4_PORT 9924
@@ -362,15 +362,15 @@ static void fh4_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
     offset += datum_size;
 }
 
-void *start_fh4_socket(void *vargp)
+int start_fh4_socket(void)
 {
-    struct sockaddr_in servaddr, cliaddr;
+    struct sockaddr_in servaddr;
 
     const int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0)
     {
         perror("An error occurred creating FH4 socket");
-        return (void *)1;
+        return 0;
     }
 
     servaddr.sin_family = AF_INET;
@@ -380,22 +380,28 @@ void *start_fh4_socket(void *vargp)
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
     {
         perror("An error occurred binding FH4 socket");
-        return (void *)1;
+        return 0;
     }
+
+    return sockfd;
+}
+
+int handle_fh4_socket_data(const int sockfd)
+{
 
     socklen_t len;
-    ssize_t msg_len;
+    struct sockaddr cliaddr;
+
     void *buffer = alloca(FH4_BUFFER_SIZE);
 
-    ForzaTelemetry telemetry;
+    ForzaTelemetry *telemetry = get_latest_telemetry();
 
-    puts("Waiting for message from FH4 socket...\n");
-    while (msg_len = recvfrom(sockfd, buffer, FH4_BUFFER_SIZE, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len))
-    {
-        fh4_parse_telemetry(&telemetry, buffer);
+    const ssize_t msg_len = recvfrom(sockfd, buffer, FH4_BUFFER_SIZE, MSG_WAITALL, &cliaddr, &len);
 
-        store_latest_telemetry(&telemetry);
-    }
+    if (msg_len != FH4_BUFFER_SIZE)
+        return 0;
 
-    return (void *)0;
+    fh4_parse_telemetry(telemetry, buffer);
+
+    return 1;
 }

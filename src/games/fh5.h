@@ -1,3 +1,5 @@
 #pragma once
 
-void *start_fh5_socket(void *vargp);
+int start_fh5_socket(void);
+
+int handle_fh5_socket_data(const int sockfd);

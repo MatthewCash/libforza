@@ -92,3 +92,11 @@ struct ForzaTelemetry
     int8_t normalized_driving_line;
     int8_t normalized_ai_brake_difference;
 };
+
+ForzaTelemetry *get_latest_telemetry(void);
+
+void notify_on_new_telemetry(void (*provided_func)(ForzaTelemetry *));
+
+void start_all_sockets(void);
+
+void poll_all_sockets(void);
