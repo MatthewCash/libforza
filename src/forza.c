@@ -7,7 +7,7 @@
 #include "games/fh4.h"
 #include "games/fh5.h"
 
-#define GAME_COUNT sizeof(game_socket_inits) / sizeof(game_socket_inits[0])
+#define GAME_COUNT (int)(sizeof(game_socket_inits) / sizeof(game_socket_inits[0]))
 
 // Games sorted by release
 int (*game_socket_inits[])(void) = {start_fm7_socket, start_fh4_socket, start_fh5_socket};
@@ -52,7 +52,7 @@ void poll_all_sockets(void)
     if (!ready)
         return;
 
-    for (unsigned long i = 0; i < GAME_COUNT; i++)
+    for (int i = 0; i < GAME_COUNT; i++)
     {
         struct pollfd pfd = pollfds[i];
 
