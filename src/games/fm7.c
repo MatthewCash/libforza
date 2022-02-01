@@ -377,6 +377,11 @@ int start_fm7_socket(void)
     return sockfd;
 }
 
+int destruct_fm7(const int sockfd)
+{
+    return close(sockfd);
+}
+
 int handle_fm7_socket_data(const int sockfd)
 {
     socklen_t len;
