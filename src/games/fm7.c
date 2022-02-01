@@ -11,7 +11,7 @@
 #include "../ForzaTelemetry.h"
 
 #define FM7_PORT 9917
-#define FM7_BUFFER_SIZE 312
+#define FM7_BUFFER_SIZE 311
 
 static void fm7_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
 {
