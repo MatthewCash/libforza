@@ -384,14 +384,11 @@ int destruct_fm7(const int sockfd)
 
 int handle_fm7_socket_data(const int sockfd)
 {
-    socklen_t len;
-    struct sockaddr cliaddr;
-
     void *buffer = alloca(FM7_BUFFER_SIZE);
 
     ForzaTelemetry *telemetry = get_latest_telemetry();
 
-    const ssize_t msg_len = recvfrom(sockfd, buffer, FM7_BUFFER_SIZE, MSG_WAITALL, &cliaddr, &len);
+    const ssize_t msg_len = recv(sockfd, buffer, FM7_BUFFER_SIZE, MSG_WAITALL);
 
     if (msg_len < 0)
         return 1;

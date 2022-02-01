@@ -387,14 +387,11 @@ int destruct_fh5(const int sockfd)
 
 int handle_fh5_socket_data(const int sockfd)
 {
-    socklen_t len;
-    struct sockaddr cliaddr;
-
     void *buffer = alloca(FH5_BUFFER_SIZE);
 
     ForzaTelemetry *telemetry = get_latest_telemetry();
 
-    const ssize_t msg_len = recvfrom(sockfd, buffer, FH5_BUFFER_SIZE, MSG_WAITALL, &cliaddr, &len);
+    const ssize_t msg_len = recv(sockfd, buffer, FH5_BUFFER_SIZE, MSG_WAITALL);
 
     if (msg_len < 0)
         return 1;
