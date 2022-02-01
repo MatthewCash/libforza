@@ -31,26 +31,33 @@ void notify_on_new_telemetry(void (*provided_func)(ForzaTelemetry *))
     notify_func = provided_func;
 }
 
-void start_all_sockets(void)
+int start_all_sockets(void)
 {
     if (latest_telemetry == NULL)
         latest_telemetry = malloc(sizeof(ForzaTelemetry));
 
+    int failures = 0;
+
     for (int i = 0; i < GAME_COUNT; i++)
     {
         const int sockfd = game_socket_inits[i]();
+        if (sockfd < 1) failures++;
 
         pollfds[i] =
             (struct pollfd){.fd = sockfd, .events = POLLIN};
     }
+
+    return failures;
 }
 
-void poll_all_sockets(void)
+int poll_all_sockets(void)
 {
     const int ready = poll(pollfds, GAME_COUNT, -1);
 
     if (!ready)
-        return;
+        return 0;
+
+    int telemetry_count = 0;
 
     for (int i = 0; i < GAME_COUNT; i++)
     {
@@ -63,6 +70,12 @@ void poll_all_sockets(void)
             continue;
 
         if (game_socket_handlers[i](pfd.fd))
+        {
+            telemetry_count++;
             notify_func(latest_telemetry);
+            
+        }
     }
+
+    return telemetry_count;
 }

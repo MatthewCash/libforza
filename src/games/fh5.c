@@ -368,20 +368,14 @@ int start_fh5_socket(void)
 
     const int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0)
-    {
-        perror("An error occurred creating FH5 socket");
         return 0;
-    }
 
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(FH5_PORT);
     servaddr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-    {
-        perror("An error occurred binding FH5 socket");
-        return 0;
-    }
+        return -1;
 
     return sockfd;
 }
@@ -397,10 +391,13 @@ int handle_fh5_socket_data(const int sockfd)
 
     const ssize_t msg_len = recvfrom(sockfd, buffer, FH5_BUFFER_SIZE, MSG_WAITALL, &cliaddr, &len);
 
+    if (msg_len < 0)
+        return 1;
+
     if (msg_len != FH5_BUFFER_SIZE)
-        return 0;
+        return 2;
 
     fh5_parse_telemetry(telemetry, buffer);
 
-    return 1;
+    return 0;
 }
