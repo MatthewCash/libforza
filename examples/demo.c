@@ -10,7 +10,7 @@ void on_new_telemetry(ForzaTelemetry *telemetry)
 int main(void)
 {
     // Initialize sockets for each game (required)
-    start_all_sockets();
+    forza_init();
 
     // Optionally register the callback
     notify_on_new_telemetry(on_new_telemetry);
@@ -21,7 +21,7 @@ int main(void)
     while (1)
     {
         // Poll for new data (should be around 60hz)
-        poll_all_sockets();
+        forza_poll();
 
         // If there is new telemetry, callback will be notified
 
@@ -31,6 +31,8 @@ int main(void)
         printf("Retrieved new telemetry!\nNumber of Cylinders is %d\n",
                telemetry->num_cylinders);
     }
+
+    forza_cleanup();
 
     return 0;
 }

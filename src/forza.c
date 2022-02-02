@@ -32,7 +32,7 @@ void notify_on_new_telemetry(void (*provided_func)(ForzaTelemetry *))
     notify_callback = provided_func;
 }
 
-int start_all_sockets(void)
+int forza_init(void)
 {
     if (latest_telemetry == NULL)
         latest_telemetry = malloc(sizeof(ForzaTelemetry));
@@ -56,7 +56,7 @@ int start_all_sockets(void)
     return failures;
 }
 
-int stop_all_sockets(void)
+int forza_cleanup(void)
 {
     int failures = 0;
 
@@ -69,7 +69,7 @@ int stop_all_sockets(void)
     return failures;
 }
 
-int poll_all_sockets(void)
+int forza_poll(void)
 {
     const int ready = poll(pollfds, GAME_COUNT, -1);
 
