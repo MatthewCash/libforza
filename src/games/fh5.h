@@ -1,7 +1,7 @@
 #pragma once
 
-int start_fh5_socket(void);
+int init_fh5(struct pollfd *pollfd);
 
-int destruct_fh5(const int sockfd);
+int destruct_fh5(void);
 
-int handle_fh5_socket_data(const int sockfd);
+int handle_fh5_socket_data(void);
