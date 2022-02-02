@@ -13,6 +13,8 @@
 #define FM7_PORT 9917
 #define FM7_BUFFER_SIZE 311
 
+static void *msg_buff = NULL;
+
 static void fm7_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
 {
     unsigned int offset = 0;
@@ -374,21 +376,26 @@ int start_fm7_socket(void)
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
         return 0;
 
+    msg_buff = calloc(1, FM7_BUFFER_SIZE);
+
     return sockfd;
 }
 
 int destruct_fm7(const int sockfd)
 {
+    free(msg_buff);
+
     return close(sockfd);
 }
 
 int handle_fm7_socket_data(const int sockfd)
 {
-    void *buffer = alloca(FM7_BUFFER_SIZE);
+    if (msg_buff == NULL)
+        return -1;
 
     ForzaTelemetry *telemetry = get_latest_telemetry();
 
-    const ssize_t msg_len = recv(sockfd, buffer, FM7_BUFFER_SIZE, MSG_WAITALL);
+    const ssize_t msg_len = recv(sockfd, msg_buff, FM7_BUFFER_SIZE, MSG_WAITALL);
 
     if (msg_len < 0)
         return 1;
@@ -396,7 +403,7 @@ int handle_fm7_socket_data(const int sockfd)
     if (msg_len != FM7_BUFFER_SIZE)
         return 2;
 
-    fm7_parse_telemetry(telemetry, buffer);
+    fm7_parse_telemetry(telemetry, msg_buff);
 
     return 0;
 }

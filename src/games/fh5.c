@@ -13,6 +13,8 @@
 #define FH5_PORT 9925
 #define FH5_BUFFER_SIZE 324
 
+static void *msg_buff = NULL;
+
 static void fh5_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
 {
     unsigned int offset = 0;
@@ -377,21 +379,26 @@ int start_fh5_socket(void)
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
         return -1;
 
+    msg_buff = calloc(1, FH5_BUFFER_SIZE);
+
     return sockfd;
 }
 
 int destruct_fh5(const int sockfd)
 {
+    free(msg_buff);
+
     return close(sockfd);
 }
 
 int handle_fh5_socket_data(const int sockfd)
 {
-    void *buffer = alloca(FH5_BUFFER_SIZE);
+    if (msg_buff == NULL)
+        return -1;
 
     ForzaTelemetry *telemetry = get_latest_telemetry();
 
-    const ssize_t msg_len = recv(sockfd, buffer, FH5_BUFFER_SIZE, MSG_WAITALL);
+    const ssize_t msg_len = recv(sockfd, msg_buff, FH5_BUFFER_SIZE, MSG_WAITALL);
 
     if (msg_len < 0)
         return 1;
@@ -399,7 +406,7 @@ int handle_fh5_socket_data(const int sockfd)
     if (msg_len != FH5_BUFFER_SIZE)
         return 2;
 
-    fh5_parse_telemetry(telemetry, buffer);
+    fh5_parse_telemetry(telemetry, msg_buff);
 
     return 0;
 }
