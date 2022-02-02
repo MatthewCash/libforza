@@ -365,39 +365,38 @@ int start_fm7_socket(void)
 
     const int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0)
-    {
-        perror("An error occurred creating FM7 socket");
         return 0;
-    }
 
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(FM7_PORT);
     servaddr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-    {
-        perror("An error occurred binding FM7 socket");
         return 0;
-    }
 
     return sockfd;
 }
 
+int destruct_fm7(const int sockfd)
+{
+    return close(sockfd);
+}
+
 int handle_fm7_socket_data(const int sockfd)
 {
-    socklen_t len;
-    struct sockaddr cliaddr;
-
     void *buffer = alloca(FM7_BUFFER_SIZE);
 
     ForzaTelemetry *telemetry = get_latest_telemetry();
 
-    const ssize_t msg_len = recvfrom(sockfd, buffer, FM7_BUFFER_SIZE, MSG_WAITALL, &cliaddr, &len);
+    const ssize_t msg_len = recv(sockfd, buffer, FM7_BUFFER_SIZE, MSG_WAITALL);
+
+    if (msg_len < 0)
+        return 1;
 
     if (msg_len != FM7_BUFFER_SIZE)
-        return 0;
+        return 2;
 
     fm7_parse_telemetry(telemetry, buffer);
 
-    return 1;
+    return 0;
 }
