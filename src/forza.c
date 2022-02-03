@@ -88,7 +88,8 @@ int forza_poll(void)
         if (!(pfd.revents & POLLIN))
             continue;
 
-        if (game_socket_handlers[i]())
+        // Verify no errors befor continuing
+        if (game_socket_handlers[i]() == 0)
         {
             telemetry_count++;
             notify_callback(latest_telemetry);
