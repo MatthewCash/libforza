@@ -1,21 +1,29 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <forza.h>
 
 // Optional callback for new telemetry data
 void on_new_telemetry(ForzaTelemetry *telemetry)
 {
-    printf("Callback received new telemetry!\nGear is %d\n", telemetry->gear);
+    printf("\nCallback received new telemetry!\nGear is %d\n", telemetry->gear);
 }
 
 int main(void)
 {
     // Initialize sockets for each game (required)
-    forza_init();
+    const int init_error = forza_init();
+
+    // Check for initialization error
+    if (init_error != 0)
+    {
+        perror("An error occurred during initialization!");
+        exit(1);
+    }
 
     // Optionally register the callback
     notify_on_new_telemetry(on_new_telemetry);
 
-    puts("Initialization Complete\n");
+    puts("Initialization Complete");
 
     // Continuously poll, consider moving to another thread
     while (1)
@@ -31,12 +39,18 @@ int main(void)
             // Latest telemetry can be retrieved on demand
             ForzaTelemetry *telemetry = get_latest_telemetry();
 
-            printf("Retrieved new telemetry!\nNumber of Cylinders is %d\n",
-                   telemetry->num_cylinders);
+            puts("\nRetrieved new telemetry!");
+            printf("Number of Cylinders is %d\n", telemetry->num_cylinders);
         }
     }
 
-    forza_cleanup();
+    const int cleanup_error = forza_cleanup();
+
+    // Check for cleanup error
+    if (cleanup_error != 0)
+    {
+        perror("An error occurred during initialization!");
+    }
 
     return 0;
 }
