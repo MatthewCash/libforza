@@ -1,4 +1,9 @@
-.vscode/
+# Output directories
 bin/
 lib/
 obj/
+result/
+
+# IDE / Linter directories
+.ccls-cache
+.vscode/

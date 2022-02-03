@@ -7,15 +7,15 @@
 #include "games/fh4.h"
 #include "games/fh5.h"
 
-#define GAME_COUNT (int)(sizeof(game_socket_inits) / sizeof(game_socket_inits[0]))
+#define GAME_COUNT (int)(sizeof(game_constructors) / sizeof(game_constructors[0]))
 
 // Games sorted by release
-int (*game_socket_inits[])(void) = {start_fm7_socket, start_fh4_socket, start_fh5_socket};
-int (*game_socket_destructors[])(const int) = {destruct_fm7, destruct_fh4, destruct_fh5};
-int (*game_socket_handlers[])(const int) = {handle_fm7_socket_data, handle_fh4_socket_data, handle_fh5_socket_data};
+int (*game_constructors[])(struct pollfd *pollfd) = {init_fm7, init_fh4, init_fh5};
+int (*game_destructors[])(void) = {destruct_fm7, destruct_fh4, destruct_fh5};
+int (*game_socket_handlers[])(void) = {handle_fm7_socket_data, handle_fh4_socket_data, handle_fh5_socket_data};
 
 static ForzaTelemetry *latest_telemetry = NULL;
-void (*notify_func)(ForzaTelemetry *);
+void (*notify_callback)(ForzaTelemetry *);
 
 struct pollfd pollfds[GAME_COUNT];
 
@@ -29,10 +29,10 @@ void notify_on_new_telemetry(void (*provided_func)(ForzaTelemetry *))
     if (latest_telemetry == NULL)
         latest_telemetry = malloc(sizeof(ForzaTelemetry));
 
-    notify_func = provided_func;
+    notify_callback = provided_func;
 }
 
-int start_all_sockets(void)
+int forza_init(void)
 {
     if (latest_telemetry == NULL)
         latest_telemetry = malloc(sizeof(ForzaTelemetry));
@@ -41,32 +41,35 @@ int start_all_sockets(void)
 
     for (int i = 0; i < GAME_COUNT; i++)
     {
-        const int sockfd = game_socket_inits[i]();
-        if (sockfd < 1) failures++;
+        struct pollfd pollfd =
+            {
+                .fd = -1,
+                .events = POLLIN,
+            };
 
-        pollfds[i] =
-            (struct pollfd){.fd = sockfd, .events = POLLIN};
+        if (game_constructors[i](&pollfd) != 0)
+            failures++;
+
+        pollfds[i] = pollfd;
     }
 
     return failures;
 }
 
-int stop_all_sockets(void)
+int forza_cleanup(void)
 {
     int failures = 0;
 
     for (int i = 0; i < GAME_COUNT; i++)
     {
-        const int sockfd = pollfds[i].fd;
-
-        if (game_socket_destructors[i](sockfd) != 0)
+        if (game_destructors[i]() != 0)
             failures++;
     }
 
     return failures;
 }
 
-int poll_all_sockets(void)
+int forza_poll(void)
 {
     const int ready = poll(pollfds, GAME_COUNT, -1);
 
@@ -85,11 +88,11 @@ int poll_all_sockets(void)
         if (!(pfd.revents & POLLIN))
             continue;
 
-        if (game_socket_handlers[i](pfd.fd))
+        // Verify no errors befor continuing
+        if (game_socket_handlers[i]() == 0)
         {
             telemetry_count++;
-            notify_func(latest_telemetry);
-            
+            notify_callback(latest_telemetry);
         }
     }
 

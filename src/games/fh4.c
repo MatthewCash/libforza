@@ -2,10 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <netinet/in.h>
+#include <poll.h>
 
 #include "../forza.h"
 #include "../ForzaTelemetry.h"
@@ -14,6 +13,7 @@
 #define FH4_BUFFER_SIZE 324
 
 static void *msg_buff = NULL;
+static int sockfd = -1;
 
 static void fh4_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
 {
@@ -364,34 +364,36 @@ static void fh4_parse_telemetry(ForzaTelemetry *telemetry, void *buffer)
     offset += datum_size;
 }
 
-int start_fh4_socket(void)
+int init_fh4(struct pollfd *pollfd)
 {
     struct sockaddr_in servaddr;
 
-    const int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0)
-        return 0;
+        return 1;
 
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(FH4_PORT);
     servaddr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-        return -1;
+        return 2;
 
     msg_buff = calloc(1, FH4_BUFFER_SIZE);
 
-    return sockfd;
+    pollfd->fd = sockfd;
+
+    return 0;
 }
 
-int destruct_fh4(const int sockfd)
+int destruct_fh4(void)
 {
     free(msg_buff);
 
     return close(sockfd);
 }
 
-int handle_fh4_socket_data(const int sockfd)
+int handle_fh4_socket_data(void)
 {
     if (msg_buff == NULL)
         return -1;

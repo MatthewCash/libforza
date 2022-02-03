@@ -97,6 +97,13 @@ ForzaTelemetry *get_latest_telemetry(void);
 
 void notify_on_new_telemetry(void (*provided_func)(ForzaTelemetry *));
 
-void start_all_sockets(void);
+// Creates and binds sockets, allocates buffers
+int forza_init(void);
+int start_all_sockets(void); // Deprecated
 
-void poll_all_sockets(void);
+// Poll sockets for data and parses
+int forza_poll(void);
+int poll_all_sockets(void); // Deprecated
+
+// Close sockets and free buffers
+int forza_cleanup(void);
