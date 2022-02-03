@@ -89,11 +89,12 @@ int forza_poll(void)
             continue;
 
         // Verify no errors befor continuing
-        if (game_socket_handlers[i]() == 0)
-        {
-            telemetry_count++;
-            notify_callback(latest_telemetry);
-        }
+        if (game_socket_handlers[i]() != 0)
+            return -1;
+        
+        telemetry_count++;
+        notify_callback(latest_telemetry);
+        
     }
 
     return telemetry_count;

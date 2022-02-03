@@ -32,7 +32,13 @@ int main(void)
         const int telemetry_ready = forza_poll();
 
         // If there is new telemetry, callback will be notified
-
+        
+        // Check for poll error
+        if (telemetry_ready == -1)
+        {
+            perror("An error occurred while polling for new telemetry!");
+        }
+        
         // Check if new telemetry is ready
         if (telemetry_ready)
         {
@@ -49,7 +55,7 @@ int main(void)
     // Check for cleanup error
     if (cleanup_error != 0)
     {
-        perror("An error occurred during initialization!");
+        perror("An error occurred during cleanup!");
     }
 
     return 0;
