@@ -12,6 +12,9 @@
 #define FM7_PORT 9917
 #define FM7_BUFFER_SIZE 311
 
+#define FM7_SLED_PACKET_SIZE 232
+#define FM7_CARDASH_PACKET_SIZE 311
+
 static void *msg_buff = NULL;
 static int sockfd = -1;
 
@@ -402,7 +405,7 @@ int handle_fm7_socket_data(void)
     if (msg_len < 0)
         return 1;
 
-    if (msg_len != FM7_BUFFER_SIZE)
+    if (msg_len != FM7_SLED_PACKET_SIZE && msg_len != FM7_CARDASH_PACKET_SIZE)
         return 2;
 
     fm7_parse_telemetry(telemetry, msg_buff);
