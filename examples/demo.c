@@ -14,8 +14,7 @@ int main(void)
     const int init_error = forza_init();
 
     // Check for initialization error
-    if (init_error != 0)
-    {
+    if (init_error != 0) {
         perror("An error occurred during initialization!");
         exit(1);
     }
@@ -26,16 +25,14 @@ int main(void)
     puts("Initialization Complete");
 
     // Continuously poll, consider moving to another thread
-    while (1)
-    {
+    while (1) {
         // Poll for new data (should be around 60hz)
         const int telemetry_ready = forza_poll();
 
         // If there is new telemetry, callback will be notified
 
         // Check if new telemetry is ready
-        if (telemetry_ready)
-        {
+        if (telemetry_ready) {
             // Latest telemetry can be retrieved on demand
             ForzaTelemetry *telemetry = get_latest_telemetry();
 
@@ -47,8 +44,7 @@ int main(void)
     const int cleanup_error = forza_cleanup();
 
     // Check for cleanup error
-    if (cleanup_error != 0)
-    {
+    if (cleanup_error != 0) {
         perror("An error occurred during initialization!");
     }
 
